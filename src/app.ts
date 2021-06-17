@@ -14,8 +14,12 @@ interface TemperatureSummary {
   average: number
 }
 
+/* Object containing a dictionary of dictionaries */
 const sumarys: { [key: string]: { [item: string]: TemperatureSummary } } = {}
 
+/* Function that given the array of TemperatureReadings fills the sumarys object,
+  the first dictionaries with cities and the dictionary inside of the cities
+  with the dates containing the sumary of that day */
 export function processReadings(readings: TemperatureReading[]): void {
   for (let read of readings) {
     let exist = true
@@ -68,6 +72,7 @@ export function processReadings(readings: TemperatureReading[]): void {
   }
 }
 
+/* Function that only reads the sumarys object and returns null if the entry doesnt exist */
 export function getTemperatureSummary(
   date: Date,
   city: string,
