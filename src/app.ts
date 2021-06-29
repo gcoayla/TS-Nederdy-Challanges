@@ -22,14 +22,7 @@ const sumarys: { [key: string]: { [item: string]: TemperatureSummary } } = {}
   with the dates containing the sumary of that day */
 export function processReadings(readings: TemperatureReading[]): void {
   for (let read of readings) {
-    let exist = true
-    if (read.city in sumarys) {
-      if (!(read.time.toDateString() in sumarys[read.city])) {
-        exist = false
-      }
-    } else {
-      exist = false
-    }
+    let exist = read.city in sumarys ? (read.time.toDateString() in sumarys[read.city]) ? true : false : false
     if (!exist) {
       const cityReadings = readings.filter(
         (item) =>
@@ -44,18 +37,18 @@ export function processReadings(readings: TemperatureReading[]): void {
       let cityLow = cityReadings.reduce((a, b) =>
         a.temperature < b.temperature ? a : b,
       )
-      let cityAvr = 0
+      let cityDayAvr = 0
       for (let item of cityReadings) {
-        cityAvr += item.temperature
+        cityDayAvr += item.temperature
       }
-      cityAvr = cityAvr / cityReadings.length
+      cityDayAvr = cityDayAvr / cityReadings.length
       if (read.city in sumarys) {
         sumarys[read.city][read.time.toDateString()] = {
           first: cityFirst.temperature,
           last: cityLast.temperature,
           high: cityHigh.temperature,
           low: cityLow.temperature,
-          average: cityAvr,
+          average: cityDayAvr,
         }
       } else {
         sumarys[read.city] = {
@@ -64,7 +57,7 @@ export function processReadings(readings: TemperatureReading[]): void {
             last: cityLast.temperature,
             high: cityHigh.temperature,
             low: cityLow.temperature,
-            average: cityAvr,
+            average: cityDayAvr,
           },
         }
       }
@@ -77,10 +70,5 @@ export function getTemperatureSummary(
   date: Date,
   city: string,
 ): TemperatureSummary | null {
-  if (city in sumarys) {
-    if (date.toDateString() in sumarys[city]) {
-      return sumarys[city][date.toDateString()]
-    }
-  }
-  return null
+  return city in sumarys ? date.toDateString() in sumarys[city] ? sumarys[city][date.toDateString()] : null : null
 }
