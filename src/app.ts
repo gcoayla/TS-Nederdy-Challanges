@@ -15,48 +15,55 @@ interface TemperatureSummary {
 }
 
 /* Object containing a dictionary of dictionaries */
-const sumarys: { [key: string]: { [item: string]: TemperatureSummary } } = {}
+const sumarys: {
+  [key: string]: {
+    [item: string]: TemperatureSummary
+  }
+} = {}
+
+/* Checks if given city and day in that city exist in the sumarys object */
+function ifExist(city: string, date: string): boolean {
+  return city in sumarys && (date in sumarys[city]);
+}
 
 /* Function that given the array of TemperatureReadings fills the sumarys object,
   the first dictionaries with cities and the dictionary inside of the cities
   with the dates containing the sumary of that day */
 export function processReadings(readings: TemperatureReading[]): void {
   for (let read of readings) {
-    let exist = read.city in sumarys ? (read.time.toDateString() in sumarys[read.city]) ? true : false : false
+    let exist = ifExist(read.city, read.time.toDateString());
     if (!exist) {
-      const cityReadings = readings.filter(
+      const cityDayReadings = readings.filter(
         (item) =>
           item.city === read.city &&
           item.time.toDateString() === read.time.toDateString(),
       )
-      let cityFirst = cityReadings[0]
-      let cityLast = cityReadings[cityReadings.length - 1]
-      let cityHigh = cityReadings.reduce((a, b) =>
-        a.temperature > b.temperature ? a : b,
-      )
-      let cityLow = cityReadings.reduce((a, b) =>
-        a.temperature < b.temperature ? a : b,
-      )
-      let cityDayAvr = 0
-      for (let item of cityReadings) {
-        cityDayAvr += item.temperature
+      let cityDayFirst = cityDayReadings[0]
+      let cityDayLast = cityDayReadings[cityDayReadings.length - 1]
+      let cityDayHigh = -200;
+      let cityDayLow = 300;
+      let cityDayAvr = 0;
+      for (let item of cityDayReadings) {
+        cityDayHigh = Math.max(cityDayHigh, item.temperature);
+        cityDayLow = Math.min(cityDayLow, item.temperature);
+        cityDayAvr += item.temperature;
       }
-      cityDayAvr = cityDayAvr / cityReadings.length
+      cityDayAvr = cityDayAvr / cityDayReadings.length
       if (read.city in sumarys) {
         sumarys[read.city][read.time.toDateString()] = {
-          first: cityFirst.temperature,
-          last: cityLast.temperature,
-          high: cityHigh.temperature,
-          low: cityLow.temperature,
+          first: cityDayFirst.temperature,
+          last: cityDayLast.temperature,
+          high: cityDayHigh,
+          low: cityDayLow,
           average: cityDayAvr,
         }
       } else {
         sumarys[read.city] = {
           [read.time.toDateString()]: {
-            first: cityFirst.temperature,
-            last: cityLast.temperature,
-            high: cityHigh.temperature,
-            low: cityLow.temperature,
+            first: cityDayFirst.temperature,
+            last: cityDayLast.temperature,
+            high: cityDayHigh,
+            low: cityDayLow,
             average: cityDayAvr,
           },
         }
@@ -70,5 +77,5 @@ export function getTemperatureSummary(
   date: Date,
   city: string,
 ): TemperatureSummary | null {
-  return city in sumarys ? date.toDateString() in sumarys[city] ? sumarys[city][date.toDateString()] : null : null
+  return ifExist(city, date.toDateString()) ? sumarys[city][date.toDateString()] : null
 }
