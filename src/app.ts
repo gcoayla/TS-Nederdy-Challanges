@@ -12,7 +12,10 @@ interface TemperatureSummary {
   high: number
   low: number
   average: number
+  accumAvr?: number
+  regCount?: number
 }
+/* accumAvr and regCount properties only are present in 'historic' key of each city */
 
 /* Object containing a dictionary of dictionaries */
 const sumarys: {
@@ -57,6 +60,11 @@ export function processReadings(readings: TemperatureReading[]): void {
           low: cityDayLow,
           average: cityDayAvr,
         }
+        sumarys[read.city]['historic'].high = Math.max(sumarys[read.city]['historic'].high, cityDayHigh);
+        sumarys[read.city]['historic'].low = Math.min(sumarys[read.city]['historic'].low, cityDayLow);
+        sumarys[read.city]['historic'].accumAvr! += cityDayAvr;
+        sumarys[read.city]['historic'].regCount! += 1;
+        sumarys[read.city]['historic'].average = sumarys[read.city]['historic'].accumAvr! / sumarys[read.city]['historic'].regCount!;
       } else {
         sumarys[read.city] = {
           [read.time.toDateString()]: {
@@ -66,6 +74,15 @@ export function processReadings(readings: TemperatureReading[]): void {
             low: cityDayLow,
             average: cityDayAvr,
           },
+        }
+        sumarys[read.city]['historic'] = {
+          first: 0,
+          last: 0,
+          high: cityDayHigh,
+          low: cityDayLow,
+          average: cityDayAvr,
+          accumAvr: cityDayAvr,
+          regCount: 1
         }
       }
     }
